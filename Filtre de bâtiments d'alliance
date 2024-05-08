@@ -1,0 +1,82 @@
+// ==UserScript==
+// @name         Filtre de bâtiments d'alliance
+// @namespace    www.operateur112.fr
+// @version      1.0
+// @description  Ajoute des boutons de filtre pour les différents types de bâtiments d'alliance.
+// @author       Lalain621
+// @match        https://www.operateur112.fr/verband/gebauede
+// @match        https://api.lss-manager.de/fr_FR/buildings
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=leitstellenspiel.de
+// @grant        none
+// ==/UserScript==
+
+
+(function() {
+    'use strict';
+
+    let activeType = null;
+
+    function addFilterButtons() {
+        const panelHeading = document.querySelector('.panel-heading');
+        const buildingTypes = [
+            { type: 'building_hospital', label: 'Hôpitaux' },
+            { type: 'building_fireschool', label: 'École de pompiers' },
+            { type: 'building_rettungsschule', label: 'École de medecine' },
+            { type: 'policechief_building_polizeiwache', label: 'Prison' },
+            { type: 'policechief_building_polizeischule', label: 'École de gendarmerie' },
+            { type: 'building_water_rescue_school', label: 'Centre de formation et intervention' }
+
+        ];
+
+        buildingTypes.forEach(info => {
+            const button = document.createElement('button');
+            button.textContent = info.label;
+            button.className = 'btn btn-xs btn-default';
+            button.addEventListener('click', () => filterBuildings(info.type, button));
+            panelHeading.appendChild(button);
+            //console.log('Button added:', info.label);
+        });
+    }
+
+    function filterBuildings(buildingType, clickedButton) {
+        const rows = document.querySelectorAll('#alliance_buildings_table tbody tr');
+
+        // Vérifiez si le bouton actif a été cliqué à nouveau
+        if (activeType === buildingType) {
+            // Retirez le filtre
+            rows.forEach(row => {
+                row.style.display = ''; // Montrer la ligne
+            });
+
+            // Définir le type actif sur null
+            activeType = null;
+        } else {
+            // Filtrer les bâtiments par type
+            rows.forEach(row => {
+                const imageSrc = row.querySelector('td img').getAttribute('src');
+                if (imageSrc.includes('/images/' + buildingType + '.png')) {
+                    row.style.display = ''; // Montrer la ligne
+                } else {
+                    row.style.display = 'none'; // Cacher la ligne
+                }
+            });
+
+            // Définir le type actif
+            activeType = buildingType;
+        }
+
+        //console.log('Filtering buildings by type:', buildingType);
+
+        // Définir le bouton actif et supprimer la classe active des autres boutons
+        const buttons = document.querySelectorAll('.btn.btn-xs');
+        buttons.forEach(button => {
+            if (button === clickedButton) {
+                button.classList.toggle('btn-success', activeType === buildingType);
+            } else {
+                button.classList.remove('btn-success');
+            }
+        });
+    }
+    // Attendez 100 ms avant d'exécuter le script
+    setTimeout(addFilterButtons, 100);
+})();
